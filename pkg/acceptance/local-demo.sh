@@ -43,7 +43,7 @@ user_containers="${name}"
 echo
 echo "testing user health..."
 docker run --rm --net=user ${USER_IMAGE} test health \
-    --users "${user_addrs}" \
+    --addresses "${user_addrs}" \
     --logLevel "${USER_LOG_LEVEL}"
 
 echo
