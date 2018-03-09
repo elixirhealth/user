@@ -135,7 +135,7 @@ func (s *datastoreStorer) CountUsers(entityID string) (int, error) {
 
 func (s *datastoreStorer) countUserEntities(userID, entityID string) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.params.CountQueryTimeout)
-	cancel()
+	defer cancel()
 	q := getEntitiesQuery(userID).Filter("entity_id = ", entityID)
 	n, err := s.client.Count(ctx, q)
 	if err != nil {
