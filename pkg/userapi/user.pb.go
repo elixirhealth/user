@@ -8,6 +8,10 @@ It is generated from these files:
 	pkg/userapi/user.proto
 
 It has these top-level messages:
+	AddEntityRequest
+	AddEntityResponse
+	GetEntitiesRequest
+	GetEntitiesResponse
 */
 package userapi
 
@@ -30,6 +34,77 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
+type AddEntityRequest struct {
+	UserId   string `protobuf:"bytes,1,opt,name=user_id,json=userId" json:"user_id,omitempty"`
+	EntityId string `protobuf:"bytes,2,opt,name=entity_id,json=entityId" json:"entity_id,omitempty"`
+}
+
+func (m *AddEntityRequest) Reset()                    { *m = AddEntityRequest{} }
+func (m *AddEntityRequest) String() string            { return proto.CompactTextString(m) }
+func (*AddEntityRequest) ProtoMessage()               {}
+func (*AddEntityRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+
+func (m *AddEntityRequest) GetUserId() string {
+	if m != nil {
+		return m.UserId
+	}
+	return ""
+}
+
+func (m *AddEntityRequest) GetEntityId() string {
+	if m != nil {
+		return m.EntityId
+	}
+	return ""
+}
+
+type AddEntityResponse struct {
+}
+
+func (m *AddEntityResponse) Reset()                    { *m = AddEntityResponse{} }
+func (m *AddEntityResponse) String() string            { return proto.CompactTextString(m) }
+func (*AddEntityResponse) ProtoMessage()               {}
+func (*AddEntityResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+
+type GetEntitiesRequest struct {
+	UserId string `protobuf:"bytes,1,opt,name=user_id,json=userId" json:"user_id,omitempty"`
+}
+
+func (m *GetEntitiesRequest) Reset()                    { *m = GetEntitiesRequest{} }
+func (m *GetEntitiesRequest) String() string            { return proto.CompactTextString(m) }
+func (*GetEntitiesRequest) ProtoMessage()               {}
+func (*GetEntitiesRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+
+func (m *GetEntitiesRequest) GetUserId() string {
+	if m != nil {
+		return m.UserId
+	}
+	return ""
+}
+
+type GetEntitiesResponse struct {
+	EntityIds []string `protobuf:"bytes,1,rep,name=entity_ids,json=entityIds" json:"entity_ids,omitempty"`
+}
+
+func (m *GetEntitiesResponse) Reset()                    { *m = GetEntitiesResponse{} }
+func (m *GetEntitiesResponse) String() string            { return proto.CompactTextString(m) }
+func (*GetEntitiesResponse) ProtoMessage()               {}
+func (*GetEntitiesResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
+
+func (m *GetEntitiesResponse) GetEntityIds() []string {
+	if m != nil {
+		return m.EntityIds
+	}
+	return nil
+}
+
+func init() {
+	proto.RegisterType((*AddEntityRequest)(nil), "userapi.AddEntityRequest")
+	proto.RegisterType((*AddEntityResponse)(nil), "userapi.AddEntityResponse")
+	proto.RegisterType((*GetEntitiesRequest)(nil), "userapi.GetEntitiesRequest")
+	proto.RegisterType((*GetEntitiesResponse)(nil), "userapi.GetEntitiesResponse")
+}
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
@@ -72,9 +147,16 @@ var _User_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("pkg/userapi/user.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 61 bytes of a gzipped FileDescriptorProto
+	// 171 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x2b, 0xc8, 0x4e, 0xd7,
 	0x2f, 0x2d, 0x4e, 0x2d, 0x4a, 0x2c, 0xc8, 0x04, 0xd3, 0x7a, 0x05, 0x45, 0xf9, 0x25, 0xf9, 0x42,
-	0xec, 0x50, 0x31, 0x23, 0x36, 0x2e, 0x96, 0xd0, 0xe2, 0xd4, 0xa2, 0x24, 0x36, 0xb0, 0xb8, 0x31,
-	0x20, 0x00, 0x00, 0xff, 0xff, 0xd9, 0x8b, 0x02, 0x32, 0x31, 0x00, 0x00, 0x00,
+	0xec, 0x50, 0x31, 0x25, 0x0f, 0x2e, 0x01, 0xc7, 0x94, 0x14, 0xd7, 0xbc, 0x92, 0xcc, 0x92, 0xca,
+	0xa0, 0xd4, 0xc2, 0xd2, 0xd4, 0xe2, 0x12, 0x21, 0x71, 0x2e, 0xb0, 0x74, 0x7c, 0x66, 0x8a, 0x04,
+	0xa3, 0x02, 0xa3, 0x06, 0x67, 0x10, 0x1b, 0x88, 0xeb, 0x99, 0x22, 0x24, 0xcd, 0xc5, 0x99, 0x0a,
+	0x56, 0x09, 0x92, 0x62, 0x02, 0x4b, 0x71, 0x40, 0x04, 0x3c, 0x53, 0x94, 0x84, 0xb9, 0x04, 0x91,
+	0x4c, 0x2a, 0x2e, 0xc8, 0xcf, 0x2b, 0x4e, 0x55, 0xd2, 0xe5, 0x12, 0x72, 0x4f, 0x2d, 0x01, 0x0b,
+	0x66, 0xa6, 0x16, 0x13, 0xb2, 0x40, 0xc9, 0x84, 0x4b, 0x18, 0x45, 0x39, 0xc4, 0x14, 0x21, 0x59,
+	0x2e, 0x2e, 0xb8, 0xbd, 0xc5, 0x12, 0x8c, 0x0a, 0xcc, 0x1a, 0x9c, 0x41, 0x9c, 0x30, 0x8b, 0x8b,
+	0x8d, 0xd8, 0xb8, 0x58, 0x42, 0x8b, 0x53, 0x8b, 0x92, 0xd8, 0xc0, 0x7e, 0x33, 0x06, 0x04, 0x00,
+	0x00, 0xff, 0xff, 0xca, 0xbe, 0x17, 0x06, 0xf5, 0x00, 0x00, 0x00,
 }

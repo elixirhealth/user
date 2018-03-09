@@ -3,5 +3,21 @@ syntax = "proto3";
 package userapi;
 
 service User {
-    // TODO
+//    rpc AddEntity (AddEntityRequest) returns (AddEntityResponse) {}
+//    rpc GetEntities (GetEntitiesRequest) returns (GetEntitiesResponse) {}
+}
+
+message AddEntityRequest {
+    string user_id = 1;
+    string entity_id = 2;
+}
+
+message AddEntityResponse {}
+
+message GetEntitiesRequest {
+    string user_id = 1;
+}
+
+message GetEntitiesResponse {
+    repeated string entity_ids = 1;
 }
