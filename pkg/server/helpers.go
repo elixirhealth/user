@@ -16,8 +16,9 @@ var (
 func getStorer(config *Config, logger *zap.Logger) (storage.Storer, error) {
 	switch config.Storage.Type {
 	case bstorage.Memory:
-		return nil, nil
-	// TODO add case statemnts for different valid Storage types
+		return storage.NewMemory(config.Storage, logger), nil
+	case bstorage.DataStore:
+		return storage.NewDatastore(config.GCPProjectID, config.Storage, logger)
 	default:
 		return nil, ErrInvalidStorageType
 	}
