@@ -43,9 +43,9 @@ func testIO() error {
 	for c := 0; c < nUserIDs; c++ {
 		userID := getUserID(c)
 		userEntities[userID] = make(map[string]struct{})
-		nEntities := rng.Intn(int(maxUserEntities)) + 1
+		nEntities := rng.Intn(maxUserEntities) + 1
 		for len(userEntities[userID]) < nEntities {
-			i := rng.Intn(int(nEntityIDs))
+			i := rng.Intn(nEntityIDs)
 			entityID := getEntityID(i)
 			if _, in := userEntities[userID][entityID]; in {
 				continue
@@ -67,7 +67,7 @@ func testIO() error {
 	}
 
 	// get entities
-	for c := 0; c < int(nUserIDs); c++ {
+	for c := 0; c < nUserIDs; c++ {
 		userID := getUserID(c)
 		rq := &api.GetEntitiesRequest{
 			UserId: userID,
