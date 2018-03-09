@@ -3,13 +3,32 @@ package server
 import (
 	"testing"
 
+	bstorage "github.com/elxirhealth/service-base/pkg/server/storage"
+	"github.com/elxirhealth/user/pkg/server/storage"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewDefaultConfig(t *testing.T) {
 	c := NewDefaultConfig()
 	assert.NotNil(t, c)
-	// TODO assert certain config elements not empty
+	assert.NotNil(t, c.Storage)
 }
 
-// TODO add TestConfig_WithCONFIGELEMENT functions for each CONFIGELEMENT
+func TestConfig_WithStorage(t *testing.T) {
+	c1, c2, c3 := &Config{}, &Config{}, &Config{}
+	c1.WithDefaultStorage()
+	assert.Equal(t, c1.Storage.Type, c2.WithStorage(nil).Storage.Type)
+	assert.NotEqual(t,
+		c1.Storage.Type,
+		c3.WithStorage(
+			&storage.Parameters{Type: bstorage.DataStore},
+		).Storage.Type,
+	)
+}
+
+func TestConfig_WithGCPProjectID(t *testing.T) {
+	c1 := &Config{}
+	p := "project-ID"
+	c1.WithGCPProjectID(p)
+	assert.Equal(t, p, c1.GCPProjectID)
+}

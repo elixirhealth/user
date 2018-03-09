@@ -77,7 +77,7 @@ func (s *datastoreStorer) AddEntity(userID, entityID string) error {
 	if _, err := s.client.Put(ctx, key, ue); err != nil {
 		return err
 	}
-	s.logger.Debug("added entity to user", logAddEntityFields(userID, entityID)...)
+	s.logger.Debug("storer added entity to user", logAddEntityFields(userID, entityID)...)
 	return nil
 }
 
@@ -101,7 +101,7 @@ func (s *datastoreStorer) GetEntities(userID string) ([]string, error) {
 		}
 		entityIDs = append(entityIDs, ue.EntityID)
 	}
-	s.logger.Debug("got entities for user", logGetEntities(userID, entityIDs)...)
+	s.logger.Debug("storer got entities for user", logGetEntities(userID, entityIDs)...)
 	return entityIDs, nil
 }
 
@@ -115,7 +115,7 @@ func (s *datastoreStorer) CountEntities(userID string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	s.logger.Debug("counted entities for user", logCountEntities(userID, n)...)
+	s.logger.Debug("storer counted entities for user", logCountEntities(userID, n)...)
 	return n, nil
 }
 
@@ -129,7 +129,7 @@ func (s *datastoreStorer) CountUsers(entityID string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	s.logger.Debug("counted users for entity", logCountUsers(entityID, n)...)
+	s.logger.Debug("storer counted users for entity", logCountUsers(entityID, n)...)
 	return n, nil
 }
 
@@ -141,7 +141,7 @@ func (s *datastoreStorer) countUserEntities(userID, entityID string) (int, error
 	if err != nil {
 		return 0, err
 	}
-	s.logger.Debug("counted user entities", logCountUserEntities(userID, entityID, n)...)
+	s.logger.Debug("storer counted user entities", logCountUserEntities(userID, entityID, n)...)
 	return n, nil
 }
 
