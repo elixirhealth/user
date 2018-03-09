@@ -7,15 +7,11 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-const (
-// TODO add default config values here
-)
-
 // Config is the config for a User instance.
 type Config struct {
 	*server.BaseConfig
-	Storage *storage.Parameters
-	// TODO add config elements
+	Storage      *storage.Parameters
+	GCPProjectID string
 }
 
 // NewDefaultConfig create a new config instance with default values.
@@ -25,7 +21,6 @@ func NewDefaultConfig() *Config {
 	}
 	return config.
 		WithDefaultStorage()
-	// TODO add .WithDefaultCONFIGELEMENT for each CONFIGELEMENT
 }
 
 // MarshalLogObject writes the config to the given object encoder.
@@ -34,8 +29,6 @@ func (c *Config) MarshalLogObject(oe zapcore.ObjectEncoder) error {
 	errors.MaybePanic(err) // should never happen
 	err = oe.AddObject(logStorage, c.Storage)
 	errors.MaybePanic(err) // should never happen
-
-	// TODO add other config elements
 	return nil
 }
 
@@ -54,4 +47,8 @@ func (c *Config) WithDefaultStorage() *Config {
 	return c
 }
 
-// TODO add WithCONFIGELEMENT and WithDefaultCONFIGELEMENT methods for each CONFIGELEMENT
+// WithGCPProjectID sets the GCP ProjectID to the given value.
+func (c *Config) WithGCPProjectID(id string) *Config {
+	c.GCPProjectID = id
+	return c
+}

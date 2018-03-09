@@ -10,4 +10,21 @@ var (
 	ErrEmptyEntityID = errors.New("empty entity ID field")
 )
 
-// TODO add ValidateENDPOINTRequest method for each service ENDPOINT
+// ValidateAddEntityRequest checks that the entity and user ID fields are populated.
+func ValidateAddEntityRequest(rq *AddEntityRequest) error {
+	if rq.EntityId == "" {
+		return ErrEmptyEntityID
+	}
+	if rq.UserId == "" {
+		return ErrEmptyUserID
+	}
+	return nil
+}
+
+// ValidateGetEntitiesRequest checks that the user ID fields are populated.
+func ValidateGetEntitiesRequest(rq *GetEntitiesRequest) error {
+	if rq.UserId == "" {
+		return ErrEmptyUserID
+	}
+	return nil
+}

@@ -7,15 +7,6 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-const (
-// MaxUserEntities is the maximum number of entities a user can be associated with.
-//MaxUserEntities = 16
-
-// MaxEntityUsers is the maximum number of users that can be associated with a single
-// entity.
-//MaxEntityUsers = 256
-)
-
 var (
 	// DefaultType is the default storage type.
 	DefaultType = bstorage.Memory

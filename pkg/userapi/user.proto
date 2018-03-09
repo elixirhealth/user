@@ -3,8 +3,12 @@ syntax = "proto3";
 package userapi;
 
 service User {
-//    rpc AddEntity (AddEntityRequest) returns (AddEntityResponse) {}
-//    rpc GetEntities (GetEntitiesRequest) returns (GetEntitiesResponse) {}
+
+    // AddEntity associates an entity ID with the given user ID.
+    rpc AddEntity (AddEntityRequest) returns (AddEntityResponse) {}
+
+    // GetEntities returns a list of entity IDs associated with the given user ID.
+    rpc GetEntities (GetEntitiesRequest) returns (GetEntitiesResponse) {}
 }
 
 message AddEntityRequest {
