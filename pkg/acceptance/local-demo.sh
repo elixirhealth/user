@@ -29,8 +29,6 @@ echo
 echo "creating user docker network..."
 docker network create user
 
-# TODO start and healthcheck dependency services if necessary
-
 echo
 echo "starting user..."
 port=10100
@@ -39,22 +37,20 @@ docker run --name "${name}" --net=user -d -p ${port}:${port} ${USER_IMAGE} \
     start \
     --logLevel "${USER_LOG_LEVEL}" \
     --serverPort ${port}
-    # TODO add other relevant args if necessary
 user_addrs="${name}:${port}"
 user_containers="${name}"
 
 echo
 echo "testing user health..."
 docker run --rm --net=user ${USER_IMAGE} test health \
-    --users "${user_addrs}" \
+    --addresses "${user_addrs}" \
     --logLevel "${USER_LOG_LEVEL}"
 
 echo
 echo "testing user ..."
 docker run --rm --net=user ${USER_IMAGE} test io \
-    --users "${user_addrs}" \
+    --addresses "${user_addrs}" \
     --logLevel "${USER_LOG_LEVEL}"
-    # TODO add other relevant args if necessary
 
 echo
 echo "cleaning up..."

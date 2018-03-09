@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/elxirhealth/service-base/pkg/cmd"
+	bstorage "github.com/elxirhealth/service-base/pkg/server/storage"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zapcore"
@@ -15,14 +16,18 @@ func TestGetUserConfig(t *testing.T) {
 	profilerPort := uint(9012)
 	logLevel := zapcore.DebugLevel.String()
 	profile := true
-	// TODO add other non-default config values
+	gcpProjectID := "some project"
+	storageInMemory := false
+	storageDataStore := true
 
 	viper.Set(cmd.ServerPortFlag, serverPort)
 	viper.Set(cmd.MetricsPortFlag, metricsPort)
 	viper.Set(cmd.ProfilerPortFlag, profilerPort)
 	viper.Set(cmd.LogLevelFlag, logLevel)
 	viper.Set(cmd.ProfileFlag, profile)
-	// TODO set other non-default config value
+	viper.Set(gcpProjectIDFlag, gcpProjectID)
+	viper.Set(storageMemoryFlag, storageInMemory)
+	viper.Set(storageDataStoreFlag, storageDataStore)
 
 	c, err := getUserConfig()
 	assert.Nil(t, err)
@@ -31,6 +36,6 @@ func TestGetUserConfig(t *testing.T) {
 	assert.Equal(t, profilerPort, c.ProfilerPort)
 	assert.Equal(t, logLevel, c.LogLevel.String())
 	assert.Equal(t, profile, c.Profile)
-	// TODO assert equal other non-default config values
-
+	assert.Equal(t, gcpProjectID, c.GCPProjectID)
+	assert.Equal(t, bstorage.DataStore, c.Storage.Type)
 }

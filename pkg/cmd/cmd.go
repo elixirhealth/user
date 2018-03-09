@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	"errors"
 	"log"
 
-	"github.com/drausin/libri/libri/common/errors"
+	cerrors "github.com/drausin/libri/libri/common/errors"
 	"github.com/drausin/libri/libri/common/logging"
 	"github.com/elxirhealth/service-base/pkg/cmd"
 	bserver "github.com/elxirhealth/service-base/pkg/server"
+	bstorage "github.com/elxirhealth/service-base/pkg/server/storage"
 	"github.com/elxirhealth/user/pkg/server"
 	"github.com/elxirhealth/user/version"
 	"github.com/spf13/cobra"
@@ -18,18 +20,19 @@ const (
 	serviceNameLower = "user"
 	serviceNameCamel = "User"
 	envVarPrefix     = "USER"
-	logLevelFlag     = "logLevel"
 
-	// TODO uncomment or delete
-	//storageMemoryFlag    = "storageMemory"
-	//storageDataStoreFlag = "storageDataStore"
-	//storagePostgresFlag  = "storagePostgres"
-	//dbURLFlag            = "dbURL"
+	logLevelFlag         = "logLevel"
+	gcpProjectIDFlag     = "gcpProjectID"
+	storageMemoryFlag    = "storageMemory"
+	storageDataStoreFlag = "storageDataStore"
 )
 
 var (
+	errMultipleStorageTypes = errors.New("multiple storage types specified")
+	errNoStorageType        = errors.New("no storage type specified")
+
 	rootCmd = &cobra.Command{
-		Short: "TODO", // TODO
+		Short: "operate a User server",
 	}
 )
 
@@ -39,17 +42,14 @@ func init() {
 
 	cmd.Start(serviceNameLower, serviceNameCamel, rootCmd, version.Current, start,
 		func(flags *pflag.FlagSet) {
-			// TODO define other flags here if needed, e.g.,
-			//flags.Bool(storageMemoryFlag, true, "use in-memory storage")
-			//flags.Bool(storageDataStoreFlag, false, "use GCP DataStore storage")
-			//flags.Bool(storagePostgresFlag, false, "use Postgres DB storage")
-			//flags.String(dbURLFlag, "", "Postgres DB URL")
+			flags.Bool(storageMemoryFlag, true, "use in-memory storage")
+			flags.Bool(storageDataStoreFlag, false, "use GCP DataStore storage")
 		})
 
 	testCmd := cmd.Test(serviceNameLower, rootCmd)
 	cmd.TestHealth(serviceNameLower, testCmd)
 	cmd.TestIO(serviceNameLower, testCmd, testIO, func(flags *pflag.FlagSet) {
-		// TODO define other flags here if needed
+		// add additional test flags here if needed
 	})
 
 	cmd.Version(serviceNameLower, rootCmd, version.Current)
@@ -57,7 +57,7 @@ func init() {
 	// bind viper flags
 	viper.SetEnvPrefix(envVarPrefix) // look for env vars with prefix
 	viper.AutomaticEnv()             // read in environment variables that match
-	errors.MaybePanic(viper.BindPFlags(rootCmd.Flags()))
+	cerrors.MaybePanic(viper.BindPFlags(rootCmd.Flags()))
 }
 
 // Execute runs the root user command.
@@ -82,7 +82,24 @@ func getUserConfig() (*server.Config, error) {
 		WithProfilerPort(uint(viper.GetInt(cmd.ProfilerPortFlag))).
 		WithLogLevel(logging.GetLogLevel(viper.GetString(logLevelFlag))).
 		WithProfile(viper.GetBool(cmd.ProfileFlag))
-	// TODO set other config elements here
-
+	st, err := getStorageType()
+	if err != nil {
+		return nil, err
+	}
+	c.Storage.Type = st
+	c.GCPProjectID = viper.GetString(gcpProjectIDFlag)
 	return c, nil
+}
+
+func getStorageType() (bstorage.Type, error) {
+	if viper.GetBool(storageMemoryFlag) && viper.GetBool(storageDataStoreFlag) {
+		return bstorage.Unspecified, errMultipleStorageTypes
+	}
+	if viper.GetBool(storageMemoryFlag) {
+		return bstorage.Memory, nil
+	}
+	if viper.GetBool(storageDataStoreFlag) {
+		return bstorage.DataStore, nil
+	}
+	return bstorage.Unspecified, errNoStorageType
 }
