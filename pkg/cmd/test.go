@@ -1,35 +1,121 @@
 package cmd
 
 import (
-	"log"
+	"context"
+	"fmt"
+	"math/rand"
+	"time"
 
+	"github.com/drausin/libri/libri/common/logging"
 	"github.com/drausin/libri/libri/common/parse"
 	"github.com/elxirhealth/service-base/pkg/cmd"
 	"github.com/elxirhealth/service-base/pkg/server"
 	"github.com/elxirhealth/user/pkg/userapi"
+	api "github.com/elxirhealth/user/pkg/userapi"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 const (
-//timeoutFlag = "timeout"
+	timeoutFlag = "timeout"
+
+	logEntityID  = "entity_id"
+	logUserID    = "user_id"
+	logNEntities = "n_entities"
 )
 
 func testIO() error {
-	//rng := rand.New(rand.NewSource(0))
-	//logger := lserver.NewDevLogger(lserver.GetLogLevel(viper.GetString(logLevelFlag)))
-	//timeout := time.Duration(viper.GetInt(timeoutFlag) * 1e9)
-	// TODO get other I/O params here
+	rng := rand.New(rand.NewSource(0))
+	logger := logging.NewDevLogger(logging.GetLogLevel(viper.GetString(logLevelFlag)))
+	timeout := time.Duration(viper.GetInt(timeoutFlag) * 1e9)
+	nUserIDs := 4
+	nEntityIDs := 32
+	maxUserEntities := 8
 
-	//clients, err := getClients()
-	_, err := getClients()
+	userEntities := make(map[string]map[string]struct{})
+
+	clients, err := getClients()
 	if err != nil {
 		return err
 	}
 
-	// TODO add I/O logic here
-	log.Println("here to fool linter, delete this line when this function is fleshed out")
+	// add entities
+	for c := 0; c < nUserIDs; c++ {
+		userID := getUserID(c)
+		userEntities[userID] = make(map[string]struct{})
+		nEntities := rng.Intn(int(maxUserEntities)) + 1
+		for len(userEntities[userID]) < nEntities {
+			i := rng.Intn(int(nEntityIDs))
+			entityID := getEntityID(i)
+			if _, in := userEntities[userID][entityID]; in {
+				continue
+			}
+
+			rq := &api.AddEntityRequest{
+				UserId:   userID,
+				EntityId: entityID,
+			}
+			client := clients[rng.Int31n(int32(len(clients)))]
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			_, err := client.AddEntity(ctx, rq)
+			cancel()
+			if err2 := logAddEntityKeysRp(logger, rq, err); err2 != nil {
+				return err2
+			}
+			userEntities[userID][entityID] = struct{}{}
+		}
+	}
+
+	// get entities
+	for c := 0; c < int(nUserIDs); c++ {
+		userID := getUserID(c)
+		rq := &api.GetEntitiesRequest{
+			UserId: userID,
+		}
+		client := clients[rng.Int31n(int32(len(clients)))]
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		rp, err := client.GetEntities(ctx, rq)
+		cancel()
+		if err2 := logGetEntitiesRp(logger, rq, rp, err); err2 != nil {
+			return err2
+		}
+	}
 
 	return nil
+}
+
+func logAddEntityKeysRp(logger *zap.Logger, rq *api.AddEntityRequest, err error) error {
+	if err != nil {
+		logger.Error("adding entity failed", zap.Error(err))
+		return err
+	}
+	logger.Info("added entity",
+		zap.String(logEntityID, rq.EntityId),
+		zap.String(logUserID, rq.UserId),
+	)
+	return nil
+}
+
+func logGetEntitiesRp(
+	logger *zap.Logger, rq *api.GetEntitiesRequest, rp *api.GetEntitiesResponse, err error,
+) error {
+	if err != nil {
+		logger.Error("getting entities failed", zap.Error(err))
+		return err
+	}
+	logger.Info("got user entities",
+		zap.String(logUserID, rq.UserId),
+		zap.Int(logNEntities, len(rp.EntityIds)),
+	)
+	return nil
+}
+
+func getUserID(i int) string {
+	return fmt.Sprintf("User-%d", i)
+}
+
+func getEntityID(i int) string {
+	return fmt.Sprintf("Entity-%d", i)
 }
 
 func getClients() ([]userapi.UserClient, error) {

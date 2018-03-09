@@ -18,7 +18,6 @@ func TestTestIO(t *testing.T) {
 	config.LogLevel = zapcore.DebugLevel
 	config.ServerPort = 10200
 	config.MetricsPort = 10201
-	// TODO set other server configs
 
 	up := make(chan *server.User, 1)
 	wg1 := new(sync.WaitGroup)
@@ -31,7 +30,6 @@ func TestTestIO(t *testing.T) {
 
 	x := <-up
 	viper.Set(cmd.AddressesFlag, fmt.Sprintf("localhost:%d", config.ServerPort))
-	// TODO set other I/O test configs
 
 	err := testIO()
 	assert.Nil(t, err)

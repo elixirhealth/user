@@ -10,6 +10,7 @@ jobs:
     working_directory: /go/src/github.com/elxirhealth/user
     steps:
       - checkout
+      - setup_remote_docker
       - restore_cache:
           keys:
             - arch={{ arch }}-vendor={{ checksum "Gopkg.lock" }}-v1
@@ -21,6 +22,16 @@ jobs:
           paths:
             - vendor
       - run: make build
+      - run: make build-static
+      - run: make docker-image
       - run: make test
-      - run: make acceptance
       - run: make lint
+      - run: make acceptance
+      - run: make demo
+      - run:
+          name: publish docker image
+          command: |
+            if [[ "${CIRCLE_BRANCH}" == "master" || "${CIRCLE_BRANCH}" == "develop" ]]; then
+              docker login -u _json_key -p "${GCR_SVC_JSON}" gcr.io
+              ./vendor/github.com/elxirhealth/service-base/scripts/publish key ${CIRCLE_BRANCH}
+            fi
