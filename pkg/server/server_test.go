@@ -26,7 +26,7 @@ func TestNewUser_ok(t *testing.T) {
 	c, err := newUser(config)
 	assert.Nil(t, err)
 	assert.Equal(t, config, c.config)
-	//assert.NotEmpty(t, c.storer)  // TODO uncomment when have in-memory storer
+	assert.NotEmpty(t, c.storer)
 }
 
 func TestNewUser_err(t *testing.T) {
