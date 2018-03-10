@@ -33,5 +33,5 @@ jobs:
           command: |
             if [[ "${CIRCLE_BRANCH}" == "master" || "${CIRCLE_BRANCH}" == "develop" ]]; then
               docker login -u _json_key -p "${GCR_SVC_JSON}" gcr.io
-              ./vendor/github.com/elxirhealth/service-base/scripts/publish key ${CIRCLE_BRANCH}
+              ./vendor/github.com/elxirhealth/service-base/scripts/publish user ${CIRCLE_BRANCH}
             fi
