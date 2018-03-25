@@ -19,7 +19,7 @@ USER_TIMEOUT="${USER_TIMEOUT:-5}"  # 10, or 20 for really sketchy network
 LOCAL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # container command constants
-USER_IMAGE="gcr.io/elxir-core-infra/user:snapshot" # develop
+USER_IMAGE="gcr.io/elixir-core-prod/user:snapshot" # develop
 
 echo
 echo "cleaning up from previous runs..."
