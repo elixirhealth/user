@@ -8,10 +8,10 @@ import (
 
 	"github.com/drausin/libri/libri/common/logging"
 	"github.com/drausin/libri/libri/common/parse"
-	"github.com/elxirhealth/service-base/pkg/cmd"
-	"github.com/elxirhealth/service-base/pkg/server"
-	"github.com/elxirhealth/user/pkg/userapi"
-	api "github.com/elxirhealth/user/pkg/userapi"
+	"github.com/elixirhealth/service-base/pkg/cmd"
+	"github.com/elixirhealth/service-base/pkg/server"
+	"github.com/elixirhealth/user/pkg/userapi"
+	api "github.com/elixirhealth/user/pkg/userapi"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )

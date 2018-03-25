@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/drausin/libri/libri/common/errors"
-	"github.com/elxirhealth/service-base/pkg/server"
-	"github.com/elxirhealth/user/pkg/server/storage"
+	"github.com/elixirhealth/service-base/pkg/server"
+	"github.com/elixirhealth/user/pkg/server/storage"
 	"go.uber.org/zap/zapcore"
 )
 

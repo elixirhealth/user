@@ -1,7 +1,7 @@
 package client
 
 import (
-	api "github.com/elxirhealth/user/pkg/userapi"
+	api "github.com/elixirhealth/user/pkg/userapi"
 	"google.golang.org/grpc"
 )
 

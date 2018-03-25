@@ -3,7 +3,7 @@ package storage
 import (
 	"sync"
 
-	api "github.com/elxirhealth/user/pkg/userapi"
+	api "github.com/elixirhealth/user/pkg/userapi"
 	"go.uber.org/zap"
 )
 
