@@ -8,7 +8,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	errors2 "github.com/drausin/libri/libri/common/errors"
 	bstorage "github.com/elixirhealth/service-base/pkg/server/storage"
-	"github.com/elixirhealth/user/pkg/server"
 	"github.com/elixirhealth/user/pkg/server/storage"
 	api "github.com/elixirhealth/user/pkg/userapi"
 	"go.uber.org/zap"
@@ -98,7 +97,7 @@ func (s *storer) GetEntities(userID string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	entityIDs := make([]string, 0, server.MaxUserEntities)
+	entityIDs := make([]string, 0)
 	for rows.Next() {
 		_, dest, create := prepEntityScan()
 		if err := rows.Scan(dest...); err != nil {
@@ -126,6 +125,10 @@ func (s *storer) CountUsers(entityID string) (int, error) {
 	}
 	return s.count(sq.Eq{entityIDCol: entityID}, "counted users",
 		zap.String(logEntityID, entityID))
+}
+
+func (s *storer) Close() error {
+	return s.db.Close()
 }
 
 func (s storer) count(pred interface{}, logMsg string, fields ...zapcore.Field) (int, error) {

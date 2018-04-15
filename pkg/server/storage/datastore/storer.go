@@ -35,7 +35,7 @@ type UserEntity struct {
 	RemovedTime  time.Time `datastore:"removed_time,noindex"`
 }
 
-type datastoreStorer struct {
+type storer struct {
 	params *storage.Parameters
 	client bstorage.DatastoreClient
 	iter   bstorage.DatastoreIterator
@@ -50,7 +50,7 @@ func New(
 	if err != nil {
 		return nil, err
 	}
-	return &datastoreStorer{
+	return &storer{
 		params: params,
 		client: &bstorage.DatastoreClientImpl{Inner: client},
 		iter:   &bstorage.DatastoreIteratorImpl{},
@@ -58,7 +58,7 @@ func New(
 	}, nil
 }
 
-func (s *datastoreStorer) AddEntity(userID, entityID string) error {
+func (s *storer) AddEntity(userID, entityID string) error {
 	if userID == "" {
 		return api.ErrEmptyUserID
 	}
@@ -84,7 +84,7 @@ func (s *datastoreStorer) AddEntity(userID, entityID string) error {
 	return nil
 }
 
-func (s *datastoreStorer) GetEntities(userID string) ([]string, error) {
+func (s *storer) GetEntities(userID string) ([]string, error) {
 	if userID == "" {
 		return nil, api.ErrEmptyUserID
 	}
@@ -108,7 +108,7 @@ func (s *datastoreStorer) GetEntities(userID string) ([]string, error) {
 	return entityIDs, nil
 }
 
-func (s *datastoreStorer) CountEntities(userID string) (int, error) {
+func (s *storer) CountEntities(userID string) (int, error) {
 	if userID == "" {
 		return 0, api.ErrEmptyUserID
 	}
@@ -122,7 +122,7 @@ func (s *datastoreStorer) CountEntities(userID string) (int, error) {
 	return n, nil
 }
 
-func (s *datastoreStorer) CountUsers(entityID string) (int, error) {
+func (s *storer) CountUsers(entityID string) (int, error) {
 	if entityID == "" {
 		return 0, api.ErrEmptyEntityID
 	}
@@ -136,7 +136,7 @@ func (s *datastoreStorer) CountUsers(entityID string) (int, error) {
 	return n, nil
 }
 
-func (s *datastoreStorer) countUserEntities(userID, entityID string) (int, error) {
+func (s *storer) countUserEntities(userID, entityID string) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.params.CountQueryTimeout)
 	defer cancel()
 	q := getEntitiesQuery(userID).Filter("entity_id = ", entityID)
@@ -146,6 +146,10 @@ func (s *datastoreStorer) countUserEntities(userID, entityID string) (int, error
 	}
 	s.logger.Debug("storer counted user entities", logCountUserEntities(userID, entityID, n)...)
 	return n, nil
+}
+
+func (s *storer) Close() error {
+	return nil
 }
 
 // NewUserEntity creates a new *UserEntity from the given user and entity ID.

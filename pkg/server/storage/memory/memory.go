@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type memoryStorer struct {
+type storer struct {
 	params       *storage.Parameters
 	logger       *zap.Logger
 	userEntities []*datastore.UserEntity
@@ -18,14 +18,14 @@ type memoryStorer struct {
 
 // New creates a new Storer backed by an in-memory list.
 func New(params *storage.Parameters, logger *zap.Logger) storage.Storer {
-	return &memoryStorer{
+	return &storer{
 		userEntities: make([]*datastore.UserEntity, 0),
 		params:       params,
 		logger:       logger,
 	}
 }
 
-func (s *memoryStorer) AddEntity(userID, entityID string) error {
+func (s *storer) AddEntity(userID, entityID string) error {
 	if userID == "" {
 		return api.ErrEmptyUserID
 	}
@@ -48,7 +48,7 @@ func (s *memoryStorer) AddEntity(userID, entityID string) error {
 	return nil
 }
 
-func (s *memoryStorer) GetEntities(userID string) ([]string, error) {
+func (s *storer) GetEntities(userID string) ([]string, error) {
 	if userID == "" {
 		return nil, api.ErrEmptyUserID
 	}
@@ -64,7 +64,7 @@ func (s *memoryStorer) GetEntities(userID string) ([]string, error) {
 	return entityIDs, nil
 }
 
-func (s *memoryStorer) CountEntities(userID string) (int, error) {
+func (s *storer) CountEntities(userID string) (int, error) {
 	if userID == "" {
 		return 0, api.ErrEmptyUserID
 	}
@@ -73,7 +73,7 @@ func (s *memoryStorer) CountEntities(userID string) (int, error) {
 	return n, nil
 }
 
-func (s *memoryStorer) CountUsers(entityID string) (int, error) {
+func (s *storer) CountUsers(entityID string) (int, error) {
 	if entityID == "" {
 		return 0, api.ErrEmptyEntityID
 	}
@@ -82,7 +82,11 @@ func (s *memoryStorer) CountUsers(entityID string) (int, error) {
 	return n, nil
 }
 
-func (s *memoryStorer) count(predicate func(ue *datastore.UserEntity) bool) int {
+func (s *storer) Close() error {
+	return nil
+}
+
+func (s *storer) count(predicate func(ue *datastore.UserEntity) bool) int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	n := 0

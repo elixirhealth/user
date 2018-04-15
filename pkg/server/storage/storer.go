@@ -21,6 +21,7 @@ type Storer interface {
 	GetEntities(userID string) ([]string, error)
 	CountEntities(userID string) (int, error)
 	CountUsers(entityID string) (int, error)
+	Close() error
 }
 
 // Parameters defines the parameters of the Storer.

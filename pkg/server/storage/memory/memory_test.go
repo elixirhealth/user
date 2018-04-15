@@ -17,7 +17,7 @@ func TestMemoryStorer_AddEntity_ok(t *testing.T) {
 	err := s.AddEntity(userID, entityID)
 	assert.Nil(t, err)
 
-	putValue := s.(*memoryStorer).userEntities[0]
+	putValue := s.(*storer).userEntities[0]
 	assert.Equal(t, userID, putValue.UserID)
 	assert.Equal(t, entityID, putValue.EntityID)
 	assert.False(t, putValue.Removed)
@@ -50,7 +50,7 @@ func TestMemoryStorer_AddEntity_err(t *testing.T) {
 			expected: api.ErrEmptyEntityID,
 		},
 		"non-zero user entities count": {
-			s: &memoryStorer{
+			s: &storer{
 				params: params,
 				logger: lg,
 				userEntities: []*datastore.UserEntity{
@@ -74,7 +74,7 @@ func TestMemoryStorer_GetEntities_ok(t *testing.T) {
 
 	userID := "some user ID"
 	entityID1, entityID2 := "some entity ID", "another entity ID"
-	s := &memoryStorer{
+	s := &storer{
 		params: params,
 		logger: lg,
 		userEntities: []*datastore.UserEntity{
@@ -101,7 +101,7 @@ func TestMemoryStorer_CountEntities_ok(t *testing.T) {
 
 	userID1, userID2 := "some user ID", "another user ID"
 	entityID1, entityID2 := "some entity ID", "another entity ID"
-	s := &memoryStorer{
+	s := &storer{
 		params: params,
 		logger: lg,
 		userEntities: []*datastore.UserEntity{
@@ -133,7 +133,7 @@ func TestMemoryStorer_CountUsers_ok(t *testing.T) {
 
 	userID1, userID2 := "some user ID", "another user ID"
 	entityID1, entityID2 := "some entity ID", "another entity ID"
-	s := &memoryStorer{
+	s := &storer{
 		params: params,
 		logger: lg,
 		userEntities: []*datastore.UserEntity{
