@@ -36,7 +36,8 @@ name="user-0"
 docker run --name "${name}" --net=user -d -p ${port}:${port} ${USER_IMAGE} \
     start \
     --logLevel "${USER_LOG_LEVEL}" \
-    --serverPort ${port}
+    --serverPort ${port} \
+    --storageMemory
 user_addrs="${name}:${port}"
 user_containers="${name}"
 
