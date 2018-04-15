@@ -39,11 +39,3 @@ func logCountUsers(entityID string, n int) []zapcore.Field {
 		zap.Int(logCount, n),
 	}
 }
-
-func logCountUserEntities(userID, entityID string, n int) []zapcore.Field {
-	return []zapcore.Field{
-		zap.String(logUserID, userID),
-		zap.String(logEntityID, entityID),
-		zap.Int(logCount, n),
-	}
-}

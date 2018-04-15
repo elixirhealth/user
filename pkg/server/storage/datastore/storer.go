@@ -148,6 +148,7 @@ func (s *datastoreStorer) countUserEntities(userID, entityID string) (int, error
 	return n, nil
 }
 
+// NewUserEntity creates a new *UserEntity from the given user and entity ID.
 func NewUserEntity(userID, entityID string) *UserEntity {
 	now := time.Now()
 	return &UserEntity{

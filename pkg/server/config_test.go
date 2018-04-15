@@ -32,3 +32,10 @@ func TestConfig_WithGCPProjectID(t *testing.T) {
 	c1.WithGCPProjectID(p)
 	assert.Equal(t, p, c1.GCPProjectID)
 }
+
+func TestConfig_WithDBUrl(t *testing.T) {
+	c1 := &Config{}
+	dbURL := "some DB URL"
+	c1.WithDBUrl(dbURL)
+	assert.Equal(t, dbURL, c1.DBUrl)
+}
