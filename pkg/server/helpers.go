@@ -5,6 +5,9 @@ import (
 
 	bstorage "github.com/elixirhealth/service-base/pkg/server/storage"
 	"github.com/elixirhealth/user/pkg/server/storage"
+	"github.com/elixirhealth/user/pkg/server/storage/datastore"
+	"github.com/elixirhealth/user/pkg/server/storage/memory"
+	"github.com/elixirhealth/user/pkg/server/storage/postgres"
 	"go.uber.org/zap"
 )
 
@@ -16,9 +19,11 @@ var (
 func getStorer(config *Config, logger *zap.Logger) (storage.Storer, error) {
 	switch config.Storage.Type {
 	case bstorage.Memory:
-		return storage.NewMemory(config.Storage, logger), nil
+		return memory.New(config.Storage, logger), nil
+	case bstorage.Postgres:
+		return postgres.New(config.DBUrl, config.Storage, logger)
 	case bstorage.DataStore:
-		return storage.NewDatastore(config.GCPProjectID, config.Storage, logger)
+		return datastore.New(config.GCPProjectID, config.Storage, logger)
 	default:
 		return nil, ErrInvalidStorageType
 	}

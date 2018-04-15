@@ -5,28 +5,28 @@ package acceptance
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"net"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/drausin/libri/libri/common/errors"
+	"github.com/drausin/libri/libri/common/logging"
 	bstorage "github.com/elixirhealth/service-base/pkg/server/storage"
 	"github.com/elixirhealth/user/pkg/server"
 	"github.com/elixirhealth/user/pkg/server/storage"
+	"github.com/elixirhealth/user/pkg/server/storage/postgres/migrations"
 	api "github.com/elixirhealth/user/pkg/userapi"
+	bindata "github.com/mattes/migrate/source/go-bindata"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 )
 
 type parameters struct {
-	nUsers       uint
-	gcpProjectID string
-	logLevel     zapcore.Level
-	timeout      time.Duration
+	nUsers   uint
+	logLevel zapcore.Level
+	timeout  time.Duration
 
 	nUserIDs        uint
 	nEntityIDs      uint
@@ -34,11 +34,11 @@ type parameters struct {
 }
 
 type state struct {
-	users         []*server.User
-	userClients   []api.UserClient
-	dataDir       string
-	datastoreProc *os.Process
-	rng           *rand.Rand
+	users            []*server.User
+	userClients      []api.UserClient
+	rng              *rand.Rand
+	dbURL            string
+	tearDownPostgres func() error
 
 	userEntities map[string]map[string]struct{}
 }
@@ -49,16 +49,15 @@ func (st *state) randClient() api.UserClient {
 
 func TestAcceptance(t *testing.T) {
 	params := &parameters{
-		nUsers:       3,
-		gcpProjectID: "dummy-acceptance-id",
-		logLevel:     zapcore.InfoLevel,
-		timeout:      1 * time.Second,
+		nUsers:   3,
+		logLevel: zapcore.InfoLevel,
+		timeout:  1 * time.Second,
 
 		nUserIDs:        16,
 		nEntityIDs:      64,
 		maxUserEntities: 8,
 	}
-	st := setUp(params)
+	st := setUp(t, params)
 
 	// add a bunch of (user, entity) pairs
 	testAddEntity(t, params, st)
@@ -66,7 +65,7 @@ func TestAcceptance(t *testing.T) {
 	// get entities for each user
 	testGetEntities(t, params, st)
 
-	tearDown(st)
+	tearDown(t, st)
 }
 
 func testAddEntity(t *testing.T, params *parameters, st *state) {
@@ -122,26 +121,25 @@ func getEntityID(i int) string {
 	return fmt.Sprintf("Entity-%d", i)
 }
 
-func setUp(params *parameters) *state {
+func setUp(t *testing.T, params *parameters) *state {
 	rng := rand.New(rand.NewSource(0))
+	dbURL, cleanup, err := bstorage.StartTestPostgres()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	dataDir, err := ioutil.TempDir("", "user-datastore-test")
-	errors.MaybePanic(err)
-	datastoreProc := bstorage.StartDatastoreEmulator(dataDir)
-
-	time.Sleep(5 * time.Second)
 	st := &state{
-		rng:           rng,
-		dataDir:       dataDir,
-		datastoreProc: datastoreProc,
-		userEntities:  make(map[string]map[string]struct{}),
+		rng:              rng,
+		dbURL:            dbURL,
+		tearDownPostgres: cleanup,
+		userEntities:     make(map[string]map[string]struct{}),
 	}
 	createAndStartUsers(params, st)
 	return st
 }
 
 func createAndStartUsers(params *parameters, st *state) {
-	configs, addrs := newUserConfigs(params)
+	configs, addrs := newUserConfigs(params, st)
 	users := make([]*server.User, params.nUsers)
 	userClients := make([]api.UserClient, params.nUsers)
 	up := make(chan *server.User, 1)
@@ -165,20 +163,19 @@ func createAndStartUsers(params *parameters, st *state) {
 	st.userClients = userClients
 }
 
-func newUserConfigs(params *parameters) ([]*server.Config, []*net.TCPAddr) {
+func newUserConfigs(params *parameters, st *state) ([]*server.Config, []*net.TCPAddr) {
 	startPort := uint(10100)
 	configs := make([]*server.Config, params.nUsers)
 	addrs := make([]*net.TCPAddr, params.nUsers)
 
-	// set eviction params to ensure that evictions actually happen during test
 	storageParams := storage.NewDefaultParameters()
-	storageParams.Type = bstorage.DataStore
+	storageParams.Type = bstorage.Postgres
 
 	for i := uint(0); i < params.nUsers; i++ {
 		serverPort, metricsPort := startPort+i*10, startPort+i*10+1
 		configs[i] = server.NewDefaultConfig().
 			WithStorage(storageParams).
-			WithGCPProjectID(params.gcpProjectID)
+			WithDBUrl(st.dbURL)
 		configs[i].WithServerPort(uint(serverPort)).
 			WithMetricsPort(uint(metricsPort)).
 			WithLogLevel(params.logLevel)
@@ -187,11 +184,19 @@ func newUserConfigs(params *parameters) ([]*server.Config, []*net.TCPAddr) {
 	return configs, addrs
 }
 
-func tearDown(st *state) {
+func tearDown(t *testing.T, st *state) {
 	for _, c := range st.users {
 		c.StopServer()
 	}
-	bstorage.StopDatastoreEmulator(st.datastoreProc)
-	err := os.RemoveAll(st.dataDir)
-	errors.MaybePanic(err)
+	logger := &bstorage.ZapLogger{Logger: logging.NewDevInfoLogger()}
+	m := bstorage.NewBindataMigrator(
+		st.dbURL,
+		bindata.Resource(migrations.AssetNames(), migrations.Asset),
+		logger,
+	)
+	err := m.Down()
+	assert.Nil(t, err)
+
+	err = st.tearDownPostgres()
+	assert.Nil(t, err)
 }

@@ -1,21 +1,23 @@
-package storage
+package memory
 
 import (
 	"testing"
 
+	"github.com/elixirhealth/user/pkg/server/storage"
+	"github.com/elixirhealth/user/pkg/server/storage/datastore"
 	api "github.com/elixirhealth/user/pkg/userapi"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
 
 func TestMemoryStorer_AddEntity_ok(t *testing.T) {
-	s := NewMemory(NewDefaultParameters(), zap.NewNop())
+	s := New(storage.NewDefaultParameters(), zap.NewNop())
 
 	userID, entityID := "some user", "some entity"
 	err := s.AddEntity(userID, entityID)
 	assert.Nil(t, err)
 
-	putValue := s.(*memoryStorer).userEntities[0]
+	putValue := s.(*storer).userEntities[0]
 	assert.Equal(t, userID, putValue.UserID)
 	assert.Equal(t, entityID, putValue.EntityID)
 	assert.False(t, putValue.Removed)
@@ -26,38 +28,38 @@ func TestMemoryStorer_AddEntity_ok(t *testing.T) {
 }
 
 func TestMemoryStorer_AddEntity_err(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	userID, entityID := "some user", "some entity"
 	cases := map[string]struct {
-		s        Storer
+		s        storage.Storer
 		userID   string
 		entityID string
 		expected error
 	}{
 		"empty user ID": {
-			s:        NewMemory(params, lg),
+			s:        New(params, lg),
 			userID:   "",
 			entityID: entityID,
 			expected: api.ErrEmptyUserID,
 		},
 		"empty entity ID": {
-			s:        NewMemory(params, lg),
+			s:        New(params, lg),
 			userID:   userID,
 			entityID: "",
 			expected: api.ErrEmptyEntityID,
 		},
 		"non-zero user entities count": {
-			s: &memoryStorer{
+			s: &storer{
 				params: params,
 				logger: lg,
-				userEntities: []*UserEntity{
+				userEntities: []*datastore.UserEntity{
 					{UserID: userID, EntityID: entityID},
 				},
 			},
 			userID:   userID,
 			entityID: entityID,
-			expected: ErrUserEntityExists,
+			expected: datastore.ErrUserEntityExists,
 		},
 	}
 	for desc, c := range cases {
@@ -67,15 +69,15 @@ func TestMemoryStorer_AddEntity_err(t *testing.T) {
 }
 
 func TestMemoryStorer_GetEntities_ok(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 
 	userID := "some user ID"
 	entityID1, entityID2 := "some entity ID", "another entity ID"
-	s := &memoryStorer{
+	s := &storer{
 		params: params,
 		logger: lg,
-		userEntities: []*UserEntity{
+		userEntities: []*datastore.UserEntity{
 			{UserID: userID, EntityID: entityID1},
 			{UserID: userID, EntityID: entityID2},
 		},
@@ -87,22 +89,22 @@ func TestMemoryStorer_GetEntities_ok(t *testing.T) {
 }
 
 func TestMemoryStorer_GetEntities_err(t *testing.T) {
-	s := NewMemory(NewDefaultParameters(), zap.NewNop())
+	s := New(storage.NewDefaultParameters(), zap.NewNop())
 	entityIDs, err := s.GetEntities("")
 	assert.Equal(t, api.ErrEmptyUserID, err)
 	assert.Nil(t, entityIDs)
 }
 
 func TestMemoryStorer_CountEntities_ok(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 
 	userID1, userID2 := "some user ID", "another user ID"
 	entityID1, entityID2 := "some entity ID", "another entity ID"
-	s := &memoryStorer{
+	s := &storer{
 		params: params,
 		logger: lg,
-		userEntities: []*UserEntity{
+		userEntities: []*datastore.UserEntity{
 			{UserID: userID1, EntityID: entityID1},
 			{UserID: userID1, EntityID: entityID2},
 			{UserID: userID2, EntityID: entityID1},
@@ -119,22 +121,22 @@ func TestMemoryStorer_CountEntities_ok(t *testing.T) {
 }
 
 func TestMemoryStorer_CountEntities_err(t *testing.T) {
-	s := NewMemory(NewDefaultParameters(), zap.NewNop())
+	s := New(storage.NewDefaultParameters(), zap.NewNop())
 	n, err := s.CountEntities("")
 	assert.Equal(t, api.ErrEmptyUserID, err)
 	assert.Zero(t, n)
 }
 
 func TestMemoryStorer_CountUsers_ok(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 
 	userID1, userID2 := "some user ID", "another user ID"
 	entityID1, entityID2 := "some entity ID", "another entity ID"
-	s := &memoryStorer{
+	s := &storer{
 		params: params,
 		logger: lg,
-		userEntities: []*UserEntity{
+		userEntities: []*datastore.UserEntity{
 			{UserID: userID1, EntityID: entityID1},
 			{UserID: userID1, EntityID: entityID2},
 			{UserID: userID2, EntityID: entityID1},
@@ -151,7 +153,7 @@ func TestMemoryStorer_CountUsers_ok(t *testing.T) {
 }
 
 func TestMemoryStorer_CountUsers_err(t *testing.T) {
-	s := NewMemory(NewDefaultParameters(), zap.NewNop())
+	s := New(storage.NewDefaultParameters(), zap.NewNop())
 	n, err := s.CountUsers("")
 	assert.Equal(t, api.ErrEmptyEntityID, err)
 	assert.Zero(t, n)

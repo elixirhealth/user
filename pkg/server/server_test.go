@@ -191,3 +191,7 @@ func (f *fixedStorer) CountEntities(userID string) (int, error) {
 func (f *fixedStorer) CountUsers(entityID string) (int, error) {
 	return f.countUsersValue, f.countUsersErr
 }
+
+func (f *fixedStorer) Close() error {
+	return nil
+}

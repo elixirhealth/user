@@ -57,7 +57,7 @@
     "pkg/server/storage",
     "pkg/version"
   ]
-  revision = "9e08bf547c5a06973e71714fe4f2aedc789372fc"
+  revision = "1ff9c8e6e67aa2debd6fdbb67f8ec5b02c3c6d0d"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"

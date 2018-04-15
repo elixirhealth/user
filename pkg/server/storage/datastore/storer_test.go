@@ -1,10 +1,11 @@
-package storage
+package datastore
 
 import (
 	"context"
 	"testing"
 
 	"cloud.google.com/go/datastore"
+	"github.com/elixirhealth/user/pkg/server/storage"
 	api "github.com/elixirhealth/user/pkg/userapi"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -17,12 +18,12 @@ var (
 )
 
 func TestDatastoreStorer_AddEntity_ok(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	client := &fixedDatastoreClient{
 		putValues: make([]*UserEntity, 0),
 	}
-	s := &datastoreStorer{
+	s := &storer{
 		params: params,
 		client: client,
 		logger: lg,
@@ -44,29 +45,29 @@ func TestDatastoreStorer_AddEntity_ok(t *testing.T) {
 }
 
 func TestDatastoreStorer_AddEntity_err(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	userID, entityID := "some user", "some entity"
 	cases := map[string]struct {
-		s        *datastoreStorer
+		s        *storer
 		userID   string
 		entityID string
 		expected error
 	}{
 		"empty user ID": {
-			s:        &datastoreStorer{params: params, logger: lg},
+			s:        &storer{params: params, logger: lg},
 			userID:   "",
 			entityID: entityID,
 			expected: api.ErrEmptyUserID,
 		},
 		"empty entity ID": {
-			s:        &datastoreStorer{params: params, logger: lg},
+			s:        &storer{params: params, logger: lg},
 			userID:   userID,
 			entityID: "",
 			expected: api.ErrEmptyEntityID,
 		},
 		"user entities count err": {
-			s: &datastoreStorer{
+			s: &storer{
 				params: params,
 				logger: lg,
 				client: &fixedDatastoreClient{
@@ -78,7 +79,7 @@ func TestDatastoreStorer_AddEntity_err(t *testing.T) {
 			expected: errTest,
 		},
 		"non-zero user entities count": {
-			s: &datastoreStorer{
+			s: &storer{
 				params: params,
 				logger: lg,
 				client: &fixedDatastoreClient{
@@ -90,7 +91,7 @@ func TestDatastoreStorer_AddEntity_err(t *testing.T) {
 			expected: ErrUserEntityExists,
 		},
 		"put err": {
-			s: &datastoreStorer{
+			s: &storer{
 				params: params,
 				logger: lg,
 				client: &fixedDatastoreClient{
@@ -109,7 +110,7 @@ func TestDatastoreStorer_AddEntity_err(t *testing.T) {
 }
 
 func TestDatastoreStorer_GetEntities_ok(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 
 	userID := "some user ID"
@@ -118,7 +119,7 @@ func TestDatastoreStorer_GetEntities_ok(t *testing.T) {
 		{UserID: userID, EntityID: entityID1},
 		{UserID: userID, EntityID: entityID2},
 	}
-	s := &datastoreStorer{
+	s := &storer{
 		params: params,
 		client: &fixedDatastoreClient{},
 		iter: &fixedDatastoreIter{
@@ -137,21 +138,21 @@ func TestDatastoreStorer_GetEntities_ok(t *testing.T) {
 }
 
 func TestDatastoreStorer_GetEntities_err(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	userID := "some user"
 	cases := map[string]struct {
-		s        *datastoreStorer
+		s        *storer
 		userID   string
 		expected error
 	}{
 		"empty user ID": {
-			s:        &datastoreStorer{params: params, logger: lg},
+			s:        &storer{params: params, logger: lg},
 			userID:   "",
 			expected: api.ErrEmptyUserID,
 		},
 		"iter next err": {
-			s: &datastoreStorer{
+			s: &storer{
 				params: params,
 				logger: lg,
 				client: &fixedDatastoreClient{},
@@ -171,12 +172,12 @@ func TestDatastoreStorer_GetEntities_err(t *testing.T) {
 }
 
 func TestDatastoreStorer_CountEntities_ok(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	client := &fixedDatastoreClient{
 		countValue: 2,
 	}
-	s := &datastoreStorer{
+	s := &storer{
 		params: params,
 		client: client,
 		logger: lg,
@@ -188,21 +189,21 @@ func TestDatastoreStorer_CountEntities_ok(t *testing.T) {
 }
 
 func TestDatastoreStorer_CountEntities_err(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	userID := "some user"
 	cases := map[string]struct {
-		s        *datastoreStorer
+		s        *storer
 		userID   string
 		expected error
 	}{
 		"empty user ID": {
-			s:        &datastoreStorer{params: params, logger: lg},
+			s:        &storer{params: params, logger: lg},
 			userID:   "",
 			expected: api.ErrEmptyUserID,
 		},
 		"client count err": {
-			s: &datastoreStorer{
+			s: &storer{
 				params: params,
 				logger: lg,
 				client: &fixedDatastoreClient{
@@ -221,12 +222,12 @@ func TestDatastoreStorer_CountEntities_err(t *testing.T) {
 }
 
 func TestDatastoreStorer_CountUsers_ok(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	client := &fixedDatastoreClient{
 		countValue: 2,
 	}
-	s := &datastoreStorer{
+	s := &storer{
 		params: params,
 		client: client,
 		logger: lg,
@@ -238,21 +239,21 @@ func TestDatastoreStorer_CountUsers_ok(t *testing.T) {
 }
 
 func TestDatastoreStorer_CountUsers_err(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	entityID := "some entity"
 	cases := map[string]struct {
-		s        *datastoreStorer
+		s        *storer
 		entityID string
 		expected error
 	}{
 		"empty entity ID": {
-			s:        &datastoreStorer{params: params, logger: lg},
+			s:        &storer{params: params, logger: lg},
 			entityID: "",
 			expected: api.ErrEmptyEntityID,
 		},
 		"client count err": {
-			s: &datastoreStorer{
+			s: &storer{
 				params: params,
 				logger: lg,
 				client: &fixedDatastoreClient{
