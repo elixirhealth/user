@@ -1,4 +1,4 @@
-package storage
+package datastore
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	bstorage "github.com/elixirhealth/service-base/pkg/server/storage"
+	"github.com/elixirhealth/user/pkg/server/storage"
 	api "github.com/elixirhealth/user/pkg/userapi"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -35,14 +36,16 @@ type UserEntity struct {
 }
 
 type datastoreStorer struct {
-	params *Parameters
+	params *storage.Parameters
 	client bstorage.DatastoreClient
 	iter   bstorage.DatastoreIterator
 	logger *zap.Logger
 }
 
-// NewDatastore creates a new Storer backed by a GCP DataStore instance.
-func NewDatastore(gcpProjectID string, params *Parameters, logger *zap.Logger) (Storer, error) {
+// New creates a new Storer backed by a GCP DataStore instance.
+func New(
+	gcpProjectID string, params *storage.Parameters, logger *zap.Logger,
+) (storage.Storer, error) {
 	client, err := datastore.NewClient(context.Background(), gcpProjectID)
 	if err != nil {
 		return nil, err
@@ -71,7 +74,7 @@ func (s *datastoreStorer) AddEntity(userID, entityID string) error {
 	}
 
 	key := datastore.IncompleteKey(userEntityKind, nil)
-	ue := newUserEntity(userID, entityID)
+	ue := NewUserEntity(userID, entityID)
 	ctx, cancel := context.WithTimeout(context.Background(), s.params.AddQueryTimeout)
 	defer cancel()
 	if _, err := s.client.Put(ctx, key, ue); err != nil {
@@ -145,6 +148,18 @@ func (s *datastoreStorer) countUserEntities(userID, entityID string) (int, error
 	return n, nil
 }
 
+func NewUserEntity(userID, entityID string) *UserEntity {
+	now := time.Now()
+	return &UserEntity{
+		UserID:       userID,
+		EntityID:     entityID,
+		Removed:      false,
+		ModifiedDate: int32(now.Unix() / secsPerDay),
+		ModifiedTime: now,
+		AddedTime:    now,
+	}
+}
+
 func getEntitiesQuery(userID string) *datastore.Query {
 	return datastore.NewQuery(userEntityKind).
 		Filter("user_id = ", userID).
@@ -155,16 +170,4 @@ func getUsersQuery(entityID string) *datastore.Query {
 	return datastore.NewQuery(userEntityKind).
 		Filter("entity_id = ", entityID).
 		Filter("removed = ", false)
-}
-
-func newUserEntity(userID, entityID string) *UserEntity {
-	now := time.Now()
-	return &UserEntity{
-		UserID:       userID,
-		EntityID:     entityID,
-		Removed:      false,
-		ModifiedDate: int32(now.Unix() / secsPerDay),
-		ModifiedTime: now,
-		AddedTime:    now,
-	}
 }

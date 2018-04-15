@@ -1,23 +1,25 @@
-package storage
+package memory
 
 import (
 	"sync"
 
+	"github.com/elixirhealth/user/pkg/server/storage"
+	"github.com/elixirhealth/user/pkg/server/storage/datastore"
 	api "github.com/elixirhealth/user/pkg/userapi"
 	"go.uber.org/zap"
 )
 
 type memoryStorer struct {
-	params       *Parameters
+	params       *storage.Parameters
 	logger       *zap.Logger
-	userEntities []*UserEntity
+	userEntities []*datastore.UserEntity
 	mu           sync.Mutex
 }
 
-// NewMemory creates a new Storer backed by an in-memory list.
-func NewMemory(params *Parameters, logger *zap.Logger) Storer {
+// New creates a new Storer backed by an in-memory list.
+func New(params *storage.Parameters, logger *zap.Logger) storage.Storer {
 	return &memoryStorer{
-		userEntities: make([]*UserEntity, 0),
+		userEntities: make([]*datastore.UserEntity, 0),
 		params:       params,
 		logger:       logger,
 	}
@@ -32,16 +34,16 @@ func (s *memoryStorer) AddEntity(userID, entityID string) error {
 	}
 
 	// check user-entity association doesn't already exist
-	pred := func(ue *UserEntity) bool {
+	pred := func(ue *datastore.UserEntity) bool {
 		return ue.EntityID == entityID && ue.UserID == userID
 	}
 	if n := s.count(pred); n > 0 {
-		return ErrUserEntityExists
+		return datastore.ErrUserEntityExists
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.userEntities = append(s.userEntities, newUserEntity(userID, entityID))
+	s.userEntities = append(s.userEntities, datastore.NewUserEntity(userID, entityID))
 	s.logger.Debug("storer added entity to user", logAddEntityFields(userID, entityID)...)
 	return nil
 }
@@ -66,7 +68,7 @@ func (s *memoryStorer) CountEntities(userID string) (int, error) {
 	if userID == "" {
 		return 0, api.ErrEmptyUserID
 	}
-	n := s.count(func(ue *UserEntity) bool { return ue.UserID == userID })
+	n := s.count(func(ue *datastore.UserEntity) bool { return ue.UserID == userID })
 	s.logger.Debug("storer counted entities for user", logCountEntities(userID, n)...)
 	return n, nil
 }
@@ -75,12 +77,12 @@ func (s *memoryStorer) CountUsers(entityID string) (int, error) {
 	if entityID == "" {
 		return 0, api.ErrEmptyEntityID
 	}
-	n := s.count(func(ue *UserEntity) bool { return ue.EntityID == entityID })
+	n := s.count(func(ue *datastore.UserEntity) bool { return ue.EntityID == entityID })
 	s.logger.Debug("storer counted users for entity", logCountUsers(entityID, n)...)
 	return n, nil
 }
 
-func (s *memoryStorer) count(predicate func(ue *UserEntity) bool) int {
+func (s *memoryStorer) count(predicate func(ue *datastore.UserEntity) bool) int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	n := 0

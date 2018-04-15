@@ -1,10 +1,11 @@
-package storage
+package datastore
 
 import (
 	"context"
 	"testing"
 
 	"cloud.google.com/go/datastore"
+	"github.com/elixirhealth/user/pkg/server/storage"
 	api "github.com/elixirhealth/user/pkg/userapi"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,7 @@ var (
 )
 
 func TestDatastoreStorer_AddEntity_ok(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	client := &fixedDatastoreClient{
 		putValues: make([]*UserEntity, 0),
@@ -44,7 +45,7 @@ func TestDatastoreStorer_AddEntity_ok(t *testing.T) {
 }
 
 func TestDatastoreStorer_AddEntity_err(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	userID, entityID := "some user", "some entity"
 	cases := map[string]struct {
@@ -109,7 +110,7 @@ func TestDatastoreStorer_AddEntity_err(t *testing.T) {
 }
 
 func TestDatastoreStorer_GetEntities_ok(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 
 	userID := "some user ID"
@@ -137,7 +138,7 @@ func TestDatastoreStorer_GetEntities_ok(t *testing.T) {
 }
 
 func TestDatastoreStorer_GetEntities_err(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	userID := "some user"
 	cases := map[string]struct {
@@ -171,7 +172,7 @@ func TestDatastoreStorer_GetEntities_err(t *testing.T) {
 }
 
 func TestDatastoreStorer_CountEntities_ok(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	client := &fixedDatastoreClient{
 		countValue: 2,
@@ -188,7 +189,7 @@ func TestDatastoreStorer_CountEntities_ok(t *testing.T) {
 }
 
 func TestDatastoreStorer_CountEntities_err(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	userID := "some user"
 	cases := map[string]struct {
@@ -221,7 +222,7 @@ func TestDatastoreStorer_CountEntities_err(t *testing.T) {
 }
 
 func TestDatastoreStorer_CountUsers_ok(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	client := &fixedDatastoreClient{
 		countValue: 2,
@@ -238,7 +239,7 @@ func TestDatastoreStorer_CountUsers_ok(t *testing.T) {
 }
 
 func TestDatastoreStorer_CountUsers_err(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	entityID := "some entity"
 	cases := map[string]struct {
